@@ -1,0 +1,27 @@
+---
+- name : OCP test
+  hosts: localhost
+  gather_facts: false
+
+  vars_files:
+    - ../vars/config.yaml
+
+  tasks:
+    - name: trigger harbor projects retention
+      include_tasks: harbor-retention.yaml
+      loop: "{{ PROJECT_NAMES }}"
+      loop_control:
+        loop_var: PROJECT_NAME
+
+    - name: Trigger harbor gc
+      uri:
+        url: "https://{{ HARBOR_IP }}/api/v2.0/system/gc/schedule"
+        method: POST
+        user: "{{ ACCOUNT_NAME }}"
+        password: "{{ ACCOUNT_PASS }}"
+        body: "{{ lookup('file','../files/api_trigger_gc.json') }}"
+        body_format: json
+        force_basic_auth: yes
+        validate_certs: false
+        follow_redirects: all
+        status_code: 201

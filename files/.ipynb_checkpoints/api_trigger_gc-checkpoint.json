@@ -1,0 +1,9 @@
+{
+    "parameters": {
+        "delete_untagged": true,
+        "dry_run": false
+    },
+    "schedule": {
+        "type": "Manual"
+    }
+}
