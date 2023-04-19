@@ -1,10 +1,10 @@
 HARBOR_IP: 192.168.50.11
 ACCOUNT_NAME: admin
 ACCOUNT_PASS: admin12345
-POLLING_RETENTINO_DELAY: 1
-POLLING_RETENTINO_RETRY: 20
-PROJECT_NAMES: 
-- seyana
-- openshift4-operator
-- openshift
-- openshift4
+IMAGE_RETENTINO_POLLING_DELAY: 1
+IMAGE_RETENTINO_POLLING_RETRY: 20
+PROJECT_NAMES: 'seyana,openshift4-operator,openshift,openshift4'
+# - seyana
+# - openshift4-operator
+# - openshift
+# - openshift4
