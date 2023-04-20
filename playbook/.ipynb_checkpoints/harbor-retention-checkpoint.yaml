@@ -1,31 +1,31 @@
 ---
-- name: Get project info
+- name: Get project {{ PROJECT_NAME }} info
   uri:
-    url: "https://{{ HARBOR_IP }}/api/v2.0/projects/{{ PROJECT_NAME }}"
+    url: "https://{{ harborURL }}/api/v2.0/projects/{{ PROJECT_NAME }}"
     method: GET
-    user: "{{ ACCOUNT_NAME }}"
-    password: "{{ ACCOUNT_PASS }}"
+    user: "{{ harborUserName }}"
+    password: "{{ harborPassword }}"
     force_basic_auth: yes
     validate_certs: false
     follow_redirects: all
   register: project_info
 
-- name: Project is not content retention_id
+- name: Project {{ PROJECT_NAME }} is not content retention_id
   debug:
     msg: "harbor project {{ project_info.json.name }} is no retention_id"
   when: "'retention_id' not in project_info.json.metadata"
-    
-- name: Project is content retention_id
+
+- name: Project {{ PROJECT_NAME }} is content retention_id
   debug:
     msg: "harbor project {{ project_info.json.name }} retention_id is {{ project_info.json.metadata.retention_id }}"
   when: project_info.json.metadata.retention_id is defined
 
-- name: Trigger retention
+- name: Trigger Project {{ PROJECT_NAME }} retention
   uri:
-    url: "https://{{ HARBOR_IP }}/api/v2.0/retentions/{{ project_info.json.metadata.retention_id }}/executions"
+    url: "https://{{ harborURL }}/api/v2.0/retentions/{{ project_info.json.metadata.retention_id }}/executions"
     method: POST
-    user: "{{ ACCOUNT_NAME }}"
-    password: "{{ ACCOUNT_PASS }}"
+    user: "{{ harborUserName }}"
+    password: "{{ harborPassword }}"
     body: "{{ lookup('file','../files/api_trigger_project_retention.json') }}"
     body_format: json
     force_basic_auth: yes
@@ -34,20 +34,19 @@
     status_code: 201
   when: "'retention_id' in project_info.json.metadata"
   register: retention_info_headers
-  
-- name: Show retention info
+
+- name: Show Project {{ PROJECT_NAME }} retention info
   debug:
     msg: "{{ retention_info_headers }}"
   when: "'retention_id' in project_info.json.metadata"
 
-
-- name: Polling Retention Status
+- name: Polling Project {{ PROJECT_NAME }} Retention Status
   uri:
     url: "{{ retention_info_headers.location }}/tasks"
     # url: "https://192.168.50.11/api/v2.0/retentions/13/executions/3831/tasks"
     method: GET
-    user: "{{ ACCOUNT_NAME }}"
-    password: "{{ ACCOUNT_PASS }}"
+    user: "{{ harborUserName }}"
+    password: "{{ harborPassword }}"
     force_basic_auth: yes
     validate_certs: false
     follow_redirects: all
@@ -55,4 +54,8 @@
   retries: "{{ IMAGE_RETENTINO_POLLING_RETRY }}"
   when: "'retention_id' in project_info.json.metadata"
   register: retention_polling_res
-  until: "{{ retention_polling_res.json | selectattr('status', '!=', 'Success') | length == 0 }}"
+  until: "{{ retention_polling_res.json | selectattr('status', '!=', 'Success') | list | length == 0 }}"
+# - name: debug Project {{ PROJECT_NAME }} test01
+#   debug:
+#     msg: "{{ retention_polling_res['json']  | selectattr('status', '!=', 'Success')  | list }}"
+#   when: "'retention_id' in project_info.json.metadata"

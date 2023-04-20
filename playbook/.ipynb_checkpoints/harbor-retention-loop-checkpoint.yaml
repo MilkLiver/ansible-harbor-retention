@@ -1,5 +1,5 @@
 ---
-- name : OCP test
+- name : Harbor Image House Keeping
   hosts: localhost
   gather_facts: false
 
@@ -7,18 +7,18 @@
     - ../vars/config.yaml
 
   tasks:
-    - name: trigger harbor projects retention
+    - name: Trigger harbor projects retention
       include_tasks: harbor-retention.yaml
-      loop: "{{ PROJECT_NAMES | split(',' } }}"
+      loop: "{{ PROJECT_NAMES.split(',') }}"
       loop_control:
         loop_var: PROJECT_NAME
 
     - name: Trigger harbor gc
       uri:
-        url: "https://{{ HARBOR_IP }}/api/v2.0/system/gc/schedule"
+        url: "https://{{ harborURL }}/api/v2.0/system/gc/schedule"
         method: POST
-        user: "{{ ACCOUNT_NAME }}"
-        password: "{{ ACCOUNT_PASS }}"
+        user: "{{ harborUserName }}"
+        password: "{{ harborPassword }}"
         body: "{{ lookup('file','../files/api_trigger_gc.json') }}"
         body_format: json
         force_basic_auth: yes
